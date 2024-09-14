@@ -2,9 +2,12 @@ import express, { urlencoded } from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import dotenv from  "dotenv"
-import connectDB from "./utils/db.js"
+import connectDB from "./src/utils/db.js"
 
-dotenv.config({})
+
+dotenv.config({
+    path: "./.env"
+})
 
 
 const app = express();
@@ -23,12 +26,16 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(urlencoded({extended:true}));
 const corsOption = {
-    origin:'http://localhost:5173',
+    origin:process.env.CORS_ORIGIN,
     credentials:true
-
 }
 app.use(cors(corsOption));
 
+//yha pe apni api aayegi
+
+import userRouter from "./src/routes/user.route.js";
+app.use("/api/v1/user", userRouter)
+//"http://localhost:8000/api/v1/user"
 
 
 app.listen(PORT, () =>{

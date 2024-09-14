@@ -27,15 +27,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum:['male','female']
     },
-    follower:[{
+    followers:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
-    following:[{
+    followings:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
-    post:[{
+    posts:[{
         type: mongoose.Schema.Types.ObjectId,
         ref:  'Post'
    }],

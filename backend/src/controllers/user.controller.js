@@ -1,8 +1,8 @@
-import { User } from "../models/user.model.js";
+import { User } from "../models/user.model.js"
 import bcrypt from  "bcryptjs";
 import jwt from  "jsonwebtoken";
-import getDataUri from "../utils/datauri.js";
-import cloudinary from "../utils/cloudinary.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
+import path  from "path";
 
 
 
@@ -39,9 +39,9 @@ export const register = async(req, res) =>{
 
 export const login = async(req, res) => {
     try {
-        const {email, password} = req.body;
+        const {email, password, username} = req.body;
 
-        if(!username || !email){
+        if(!username && !email){
             return res.status(401).json({
                 message:"Something is missing please check!",
                 success: false
@@ -69,10 +69,10 @@ export const login = async(req, res) => {
             profilePicture: user.profilePicture,
             bio:user.bio,
             followers:user.followers,
-            following:user.following,
+            followings:user.followings,
             posts:user.posts
         }
-        const token = await jwt.sign(
+        const token = jwt.sign(
             {userId:user._id},
             process.env.SECRET_KEY,
             {expiresIn:'1d'}
@@ -106,7 +106,7 @@ export const logout = async(_,res) =>{
 export const getProfile = async(req, res) =>{
     try {
         const userId = req.params.id;
-        let user = await User.findById(userId);
+        let user = await User.findById(userId).select("-password");
         return res
         .status(200)
         .json({
@@ -123,28 +123,23 @@ export const editProfile = async(req, res) =>{
     try {
         const userId = req.id;
         const {bio, gender} = req.body;
-        const {profilePicture} = req.file;
-        let cloudResponse;
-        if(profilePicture){
-            const fileUri = getDataUri(profilePicture)
-            cloudResponse = await cloudinary.uploader.upload(fileUri)
+        console.log(bio)
+        console.log(gender)
+        let profilePicture;
+        if(req.file &&  req.file.path){
+            profilePicture = req.file.path
         }
-        const  user = await User.findById(userId);
-        if(!user){
-            return res
-            .status(404)
-            .json({
-                message:"User not found",
-                success: false
-            })
-        }
+
+        let cloudResponse = await uploadOnCloudinary(profilePicture);
+        const  user = await User.findById(userId).select("-password");
+
         if(bio){
             user.bio = bio
         }
         if(gender){
             user.gender = gender
         }
-        if(profilePicture){
+        if(cloudResponse){
             user.profilePicture = cloudResponse.secure_url
         }
 
@@ -161,4 +156,81 @@ export const editProfile = async(req, res) =>{
         console.log(error)
     }
 }
-o
+
+export const getSuggestedUser = async(req, res) => {
+    try {
+        const suggestedUser = await User.find({_id:{$ne:req.id}}).select("-password");
+        if(!suggestedUser){
+            return res
+            .status(400)
+            .json({
+                message:"No user found",
+            })
+        }
+        return res
+        .status(200)
+        .json({
+            success: true,
+            users:  suggestedUser
+
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const followOrUnfollow = async(req, res) =>{
+    try {
+        const followKrneWala = req.id //haredra
+        const jiskoFollowKrunga = req.params.id; //shivani
+        if(followKrneWala === jiskoFollowKrunga){
+            return res
+            .status(400)
+            .json({
+                message :"You can't follow yourself",
+                success :false
+            })
+        }
+        const user = await User.findById(followKrneWala);
+        const targetUser = await  User.findById(jiskoFollowKrunga);
+
+        if(!user || !targetUser){
+            return res
+            .status(400)
+            .json({
+                message :"User not found", 
+                success :false
+            })
+        }
+        // main check krunga follow krna hai ki unfollow
+        const isFollowing = user.followings.includes(jiskoFollowKrunga);
+        if(isFollowing){
+            // unfollow krna hai
+            await Promise.all([
+                User.updateOne({_id:followKrneWala},{$pull:{followings:jiskoFollowKrunga}}),
+                User.updateOne({_id:jiskoFollowKrunga},{$pull:{followers:followKrneWala}}),
+            ])
+            return res
+            .status(200)
+            .json({
+                message :"Unfollowed successfully",
+                success :true
+            })
+        }else{
+            // follow krna hai
+            await Promise.all([
+                User.updateOne({_id:followKrneWala},{$push:{followings:jiskoFollowKrunga}}),
+                User.updateOne({_id:jiskoFollowKrunga},{$push:{followers:followKrneWala}}),
+            ])
+            return res
+            .status(200)
+            .json({
+                message :"followed successfully",
+                success :true
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        
+    }
+}
