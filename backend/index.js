@@ -34,8 +34,12 @@ app.use(cors(corsOption));
 //yha pe apni api aayegi
 
 import userRouter from "./src/routes/user.route.js";
+import postRouter from  "./src/routes/post.route.js";
+
+
 app.use("/api/v1/user", userRouter)
 //"http://localhost:8000/api/v1/user"
+app.use("/api/v1/post", postRouter)
 
 
 app.listen(PORT, () =>{
