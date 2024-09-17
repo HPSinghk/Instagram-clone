@@ -164,10 +164,9 @@ export const dislikePost = async(req, res) => {
 export const addComment = async(req, res) =>{
     try {
         const {text}  =  req.body;
-        upload.none();
         const  userWantAddComment = req.id;
         const postId = req.params.id;
-        console.log(text)
+        /* console.log(text) */
         const post = await Post.findById(postId);
         if(!post) {
             return res

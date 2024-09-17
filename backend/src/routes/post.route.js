@@ -16,7 +16,7 @@ router.route('/:id/like-post').get(isAuthenticated,likePost)
 router.route('/:id/dislike-post').get(isAuthenticated,dislikePost)
 router.route('/:id/add-comment').post(
     isAuthenticated,
-    upload.single(),
+    upload.none(),
     addComment
 )
 router.route('/:id/get-comments').get(isAuthenticated,getCommentsOfPost)

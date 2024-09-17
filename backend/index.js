@@ -3,6 +3,10 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import dotenv from  "dotenv"
 import connectDB from "./src/utils/db.js"
+import userRouter from "./src/routes/user.route.js";
+import postRouter from  "./src/routes/post.route.js";
+import messageRouter  from "./src/routes/message.route.js";
+
 
 
 dotenv.config({
@@ -31,16 +35,12 @@ const corsOption = {
 }
 app.use(cors(corsOption));
 
+
 //yha pe apni api aayegi
-
-import userRouter from "./src/routes/user.route.js";
-import postRouter from  "./src/routes/post.route.js";
-
-
-app.use("/api/v1/user", userRouter)
 //"http://localhost:8000/api/v1/user"
+app.use("/api/v1/user", userRouter)
 app.use("/api/v1/post", postRouter)
-
+app.use("/api/v1/message", messageRouter)
 
 app.listen(PORT, () =>{
     connectDB();
